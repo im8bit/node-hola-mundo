@@ -2,10 +2,12 @@
 # Stage 1 — Dependencias (builder)
 # Usamos la imagen slim de Debian para tener un entorno Linux limpio y ligero
 # =============================================================================
-FROM node:20-bookworm-slim AS builder
+FROM node:22.22.1-alpine3.23 AS builder
 
 # Directorio de trabajo dentro del contenedor
 WORKDIR /app
+
+ARG IKENV_IMAGE
 
 # Copiamos primero los archivos de manifiesto para aprovechar la caché de capas.
 # Si package.json no cambia, Docker reutiliza esta capa en builds posteriores.
@@ -19,7 +21,12 @@ RUN npm ci --omit=dev
 # Partimos de la misma base para mantener consistencia; la imagen final
 # NO incluye el caché de npm ni herramientas de build innecesarias.
 # =============================================================================
-FROM node:20-bookworm-slim AS runner
+FROM node:22.22.1-alpine3.23 AS runner
+
+RUN apk add --no-cache \
+  zlib=1.3.2-r0 \
+  libexpat=2.7.5-r0 \
+  libpng=1.6.57-r0
 
 # Metadatos del contenedor (estándar OCI)
 LABEL org.opencontainers.image.title="node-hola-mundo" \
